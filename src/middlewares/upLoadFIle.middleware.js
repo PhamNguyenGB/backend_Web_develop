@@ -5,6 +5,7 @@ require("dotenv").config();
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         // console.log("check req:", req);
+        // console.log("check file:", file);
         // console.log("check cb:", cb);
         cb(null, path.join(__dirname, '../../public/images'));
     },

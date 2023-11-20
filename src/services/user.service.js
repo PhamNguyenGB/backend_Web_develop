@@ -4,6 +4,8 @@ const ObjectId = require('mongoose').Types.ObjectId;
 const bcrypt = require('bcryptjs');
 const { createJWT } = require('../middlewares/jsonAction.middleware');
 
+const salt = bcrypt.genSaltSync(10);
+
 const checkUsername = async (username) => {
     let user = await UserModel.findOne({ username: username });
     if (user) {
@@ -20,22 +22,30 @@ const checkPhone = async (phone) => {
     return false;
 }
 
+const checkPassword = async (passwordInput, passwordModel) => {
+    if (passwordInput === passwordModel) {
+        return true;
+    }
+    return false;
+}
+
 class UserService {
     constructor() {
         this.db = UserModel
     }
     async addNewUser(userData) {
         try {
-            let isUsernameExist = await checkUsername(userData.username);
+            console.log(userData);
+            let isUsernameExist = await checkUsername(userData.userData.username);
             if (isUsernameExist === true) {
                 return {
                     EM: 'Tên tài khoản đã tồn tại',
                     EC: 1,
-                    DT: 'isValidUsername',
+                    DT: '',
                 }
             }
 
-            let isPhoneExits = await checkPhone(userData.phone);
+            let isPhoneExits = await checkPhone(userData.userData.phone);
             if (isPhoneExits === true) {
                 return {
                     EM: 'Số điện thoại đã được sử dụng',
@@ -43,13 +53,14 @@ class UserService {
                     DT: 'isValidPhone'
                 }
             }
-            const hashedPassword = await bcrypt.hash(userData.password, 10);
+            const hashedPassword = await bcrypt.hashSync(userData.userData.password, salt);
+            console.log(hashedPassword);
             await this.db.create({
-                username: userData.username,
-                fullname: userData.fullname,
+                username: userData.userData.username,
+                fullname: userData.userData.fullname,
                 password: hashedPassword,
-                address: userData.address,
-                phone: userData.phone,
+                address: userData.userData.address,
+                phone: userData.userData.phone,
             })
             return {
                 EM: 'Tạo tài khoản thành công',
@@ -60,7 +71,7 @@ class UserService {
             console.log(error);
             return {
                 EM: 'Tạo tài khoản thất bại',
-                EC: 1,
+                EC: -1,
                 DT: [],
             };
         }
@@ -71,7 +82,8 @@ class UserService {
             // Check username, email and phone
             let user = await this.db.findOne({ username: data.username });
             if (user) {
-                let isCorrectPassword = await checkPassword(data.password, user.password);
+                const hashedPassword = await bcrypt.hashSync(data.password, salt);
+                let isCorrectPassword = await checkPassword(hashedPassword, user.password);
                 if (isCorrectPassword === true) {
                     // let token = 
                     let payload = {
@@ -104,10 +116,14 @@ class UserService {
             console.log(error);
             return {
                 EM: 'Lỗi Đăng nhập',
-                EC: -2
+                EC: -1
             }
 
         }
+    }
+
+    async findByUsername(usernameIn) {
+        return await this.db.findOne({ username: usernameIn });
     }
 
 }

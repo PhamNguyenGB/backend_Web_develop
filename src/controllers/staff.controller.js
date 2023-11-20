@@ -1,14 +1,15 @@
-const UserService = require('../services/user.service');
-const userService = new UserService();
+const StaffService = require('../services/staff.service');
+const staffService = new StaffService();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-const register = async (req, res) => {
+
+const registerStaff = async (req, res) => {
     try {
         // username, password, phone, address
-        if (req.body.username === '' || req.body.password === '' || req.body.phone === '' || req.body.address === '') {
+        if (!req.body.staffname || !req.body.position || !req.body.password || !req.body.phone || !req.body.address) {
             return res.status(200).json({
-                EM: 'Missing required parameters',
+                EM: 'Bạn chưa nhập đầy đủ thông tin!',
                 EC: '1',
                 DT: '',
             });
@@ -30,7 +31,7 @@ const register = async (req, res) => {
             });
         }
 
-        let data = await userService.addNewUser(req.body);
+        let data = await staffService.addNewStaff(req.body);
         return res.status(200).json({
             EM: data.EM,
             EC: data.EC,
@@ -42,17 +43,17 @@ const register = async (req, res) => {
             EM: 'error from server handleRegister',
             EC: '-1',
             DT: '',
-        })
+        });
     }
 }
 
-const login = async (req, res) => {
+const loginStaff = async (req, res) => {
     const error = {}
-    const userInfor = req.body
-    if (!userInfor.username) {
-        error.username = "Missing username"
+    const staffInfor = req.body
+    if (!staffInfor.staffname) {
+        error.staffname = "Missing staffname"
     }
-    if (!userInfor.password) {
+    if (!staffInfor.password) {
         error.password = "Missing password"
     }
     if (Object.keys(error).length > 0) {
@@ -60,11 +61,11 @@ const login = async (req, res) => {
             error: error
         })
     }
-    const user = await userService.findByUsername(userInfor.username)
-    if (!user) {
-        error.userInfor = "Unknown username"
+    const staff = await staffService.findByStaffname(staffInfor.staffname)
+    if (!staff) {
+        error.staffname = "Unknown staffname"
     } else {
-        const valid = await bcrypt.compare(userInfor.password, user.password)
+        const valid = await bcrypt.compare(staffInfor.password, staff.password)
         if (!valid) {
             error.password = "Invalid password"
         }
@@ -75,22 +76,23 @@ const login = async (req, res) => {
         })
     }
 
-    const { accessToken } = generateToken({ id: user._id, username: user.username, role: "user" })
+    const { accessToken } = generateToken({ id: staff._id, staffname: staff.staffname, role: "staff" })
     return res.status(200).json({
-        id: user.id,
-        username: user.username,
-        role: "user",
+        id: staff.id,
+        staffname: staff.staffname,
+        role: "staff",
         accessToken: accessToken,
     })
 };
 
-const logout = async (req, res) => {
+const logoutStaff = async (req, res) => {
+    const staffId = req.id
     return res.sendStatus(200)
 };
 
-const generateToken = (user) => {
+const generateToken = (staff) => {
     const tokens = {
-        accessToken: jwt.sign(user, process.env.JWT_SECRET, {
+        accessToken: jwt.sign(staff, process.env.JWT_SECRET, {
             expiresIn: "1h"
         }),
     }
@@ -98,7 +100,7 @@ const generateToken = (user) => {
 }
 
 module.exports = {
-    register,
-    login,
-    logout,
+    registerStaff,
+    loginStaff,
+    logoutStaff,
 }

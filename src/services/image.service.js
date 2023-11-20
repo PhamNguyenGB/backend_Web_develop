@@ -31,24 +31,15 @@ class ImageService {
 
     async updateImage(file, productId) {
         try {
-            let product = await this.db.findOne({
-                productId: productId
-            })
-            if (product) {
-                await product.update({
+            await this.db.findOneAndUpdate({ productId: productId },
+                {
                     productId: productId,
                     path: file.path,
                     url: `http://localhost:8888/public/images/${file.filename}`,
                 });
-                return {
-                    EM: "Image successfully updated",
-                    EC: 0,
-                    DT: [],
-                }
-            }
             return {
-                EM: "Image not found",
-                EC: -1,
+                EM: "Image successfully updated",
+                EC: 0,
                 DT: [],
             }
         } catch (error) {
@@ -63,13 +54,15 @@ class ImageService {
 
     async deleteImage(idProduct) {
         try {
-            await this.db.delete({ idProduct: idProduct });
+            console.log(idProduct);
+            await this.db.deleteOne({ productId: idProduct });
             return {
                 EM: "Image deleted",
                 EC: 0,
                 DT: [],
             }
         } catch (error) {
+            console.log(error)
             return {
                 EM: "error delete Image",
                 EC: 1,
@@ -77,6 +70,7 @@ class ImageService {
             }
         }
     }
+
 }
 
 module.exports = ImageService 
