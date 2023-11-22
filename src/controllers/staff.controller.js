@@ -93,7 +93,7 @@ const logoutStaff = async (req, res) => {
 const generateToken = (staff) => {
     const tokens = {
         accessToken: jwt.sign(staff, process.env.JWT_SECRET, {
-            expiresIn: "1h"
+            expiresIn: "5h"
         }),
     }
     return tokens
