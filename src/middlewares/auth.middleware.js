@@ -3,9 +3,10 @@ const jwt = require('jsonwebtoken');
 
 function veryfyToken(role = 'user') {
     return (req, res, next) => {
+        console.log(req.body);
 
         const authorizationHeader = req.headers['authorization']
-
+        // console.log(authorizationHeader);
         if (!authorizationHeader) {
             console.log("No header");
             return res.sendStatus(401);
@@ -23,10 +24,14 @@ function veryfyToken(role = 'user') {
             if (role === 'admin' && req.role !== 'admin') {
                 return res.sendStatus(403);
             } else if (role === 'staff' && req.role === 'user') {
+                console.log(role);
+                console.log(req.role);
+                console.log('hii');
                 return res.sendStatus(403);
             }
             next();
         } catch (error) {
+            console.log(error);
             return res.sendStatus(403);
         }
     }

@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const Router = require('./src/routes/user.route');
 const ProductRouter = require('./src/routes/product.route');
-const staffAuthRoute = require('./src/routes/staff.route');
+const OrderRouter = require('./src/routes/order.route');
+const StaffAuthRoute = require('./src/routes/staff.route');
 const ApiError = require('./src/api_error');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -25,8 +26,9 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/', Router);
+app.use('/api/', StaffAuthRoute);
+app.use('/api/', OrderRouter);
 app.use('/api/', ProductRouter);
-app.use('/api/', staffAuthRoute);
 
 app.use((req, res, next) => {
     return next(new ApiError(404, 'Resource Not Found'));
